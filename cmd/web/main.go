@@ -7,6 +7,13 @@ import (
 	"os"
 )
 
+// Define an application struct to hold the application-wide dependencies for the
+// web application.
+type application struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
+}
+
 func main() {
 	// Define a new command-line flag with the name 'addr', a default value of ":4000"
 	// and some short help text explaining what the flag controls. The value of the
@@ -32,6 +39,12 @@ func main() {
 	// file name and line number.
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// Initialize a new instance of our application struct, containing the
+	// dependencies.
+	app := &application{
+		errorLog: errorLog,
+		infoLog:  infoLog,
+	}
 	// Use the http.NewServeMux() function to initialize a new servemux, then
 	// register the home function as the handler for the "/" URL pattern.
 	mux := http.NewServeMux()
@@ -46,11 +59,11 @@ func main() {
 	// Use the mux.Handle() function to register the file server as the handler for
 	// all URL paths that start with "/static/". For matching paths, we strip the
 	// "/static" prefix before the request reaches the file server.
-	mux.HandleFunc("/", home)
+	mux.HandleFunc("/", app.home) // Swap the route declarations to use the application struct's methods as the handler functions.
 
 	// Register the other application routes as normal.
-	mux.HandleFunc("/snippet/view", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
+	mux.HandleFunc("/snippet/view", app.snippetView)     // Swap the route declarations to use the application struct's methods as the handler functions.
+	mux.HandleFunc("/snippet/create", app.snippetCreate) // Swap the route declarations to use the application struct's methods as the handler functions.
 
 	// Initialize a new http.Server struct. We set the Addr and Handler fields so
 	// that the server uses the same network address and routes as before, and set
